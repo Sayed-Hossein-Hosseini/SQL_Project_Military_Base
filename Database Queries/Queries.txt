@@ -1,0 +1,261 @@
+1. 
+
+SELECT Base_Name, Commander ,Base_ID
+FROM Bases 
+WHERE Location = 'Virginia' AND Have_Air_Defense = true;
+
+
+2.
+
+SELECT SUM(age) AS Total_Age 
+FROM Soldiers 
+WHERE `Rank` = 'Major';
+
+3.
+
+SELECT Soldire_name, age
+FROM Soldiers 
+WHERE Base_ID IN (
+    SELECT Base_ID 
+    FROM Bases 
+    WHERE Commander LIKE 'Colonel%');
+
+4.
+
+SELECT S.Soldire_name 
+FROM Soldiers S 
+JOIN Bases B ON S.Base_ID = B.Base_ID 
+JOIN Permissions P ON S.Soldire_ID = P.Soldire_ID 
+WHERE B.Location = 'California' AND P.permission_type = 'Annual Leave';
+
+5.
+
+SELECT 
+    e.Equipment_Model, 
+    b.Base_Name
+FROM 
+    Equipments e
+JOIN
+	Units u on e.unit_id_uses = u.unit_id
+JOIN 
+    Bases b ON e.Base_ID = b.Base_ID
+WHERE 
+    u.unit_type = 'Tank';
+
+
+6.
+
+SELECT S.Soldire_name 
+FROM Soldiers S 
+JOIN Tasks T ON S.Soldire_ID = T.Soldire_ID 
+WHERE T.Status = 'Pending' AND T.Unit_ID IN (
+    SELECT Unit_ID FROM Units WHERE units.Unit_type = 'Helicopter');
+
+
+7.
+
+SELECT 
+    s.Soldire_Name, 
+    s.Age, 
+    s.mission_number, 
+	b.Commander
+FROM 
+    Soldiers s
+JOIN 
+    permissions p ON p.Soldire_ID= s.Soldire_ID
+JOIN 
+    Bases b ON s.Base_ID = b.Base_ID
+WHERE 
+    SUBSTR(p.Start_Date, 1, 7) = '2024-04';
+
+8.
+
+SELECT M.Mission_Name, M.Start_Date, M.End_Date, M.Target
+FROM Missions M
+WHERE M.Target LIKE '%Terrorist%';
+
+9.
+
+SELECT DISTINCT M.Mission_Name
+FROM Missions M
+JOIN Tasks T ON M.Mission_ID = T.Mission_ID
+JOIN Soldiers S ON T.Soldire_ID = S.Soldire_ID
+JOIN Equipments E ON E.Base_ID = M.Base_ID
+WHERE E.Equipment_model = 'Tank' AND S.age > 25;
+
+
+10.
+
+SELECT 
+    a.Date AS Absent_Date, 
+    s.Soldire_Name
+FROM 
+    Attendance a
+JOIN 
+    Soldiers s ON a.Soldire_ID = s.Soldire_ID
+JOIN 
+    Missions m ON s.Mission_Number = m.Mission_ID
+WHERE 
+    m.Soldires_Lost > 3         -- مأموریت‌هایی با تلفات بیش از 3
+    AND a.Status = FALSE        -- تاریخ‌هایی که سرباز غایب بوده است
+ORDER BY 
+    a.Date
+
+
+11.
+
+SELECT DISTINCT M.Mission_Name, m.units_lost
+FROM Missions M
+JOIN Units U ON M.Base_ID = U.Base_ID
+JOIN Tasks T ON M.Mission_ID = T.Mission_ID
+WHERE U.Unit_type = 'Helicopter' AND M.units_lost > 1;
+
+
+12.
+
+SELECT 
+    B.Base_Name,
+    (SUM(M.Soldires_lost) * 100.0 / (SELECT SUM(Soldires_lost) FROM Missions)) AS Soldier_Casualty_Percentage,
+    (SUM(M.units_lost) * 100.0 / (SELECT SUM(units_lost) FROM Missions)) AS Unit_Casualty_Percentage
+FROM Bases B
+JOIN Missions M ON B.Base_ID = M.Base_ID
+WHERE B.Location = 'Texas'
+GROUP BY B.Base_Name;
+
+
+13.
+
+SELECT M.Mission_Name, S.Soldire_name, U.Unit_type
+FROM Missions M
+JOIN Tasks T ON M.Mission_ID = T.Mission_ID
+JOIN Soldiers S ON T.Soldire_ID = S.Soldire_ID
+JOIN Units U ON T.Unit_ID = U.Unit_ID
+WHERE S.age < 28;
+
+14. 
+
+SELECT S.Soldire_name, COUNT(P.Permission_ID) AS Leave_Count
+FROM Soldiers S
+JOIN Permissions P ON S.Soldire_ID = P.Soldire_ID
+WHERE P.Permission_type = 'Annual Leave'
+GROUP BY S.Soldire_name
+ORDER BY Leave_Count DESC
+LIMIT 5;
+
+15. 
+
+SELECT b.Base_Name, COUNT(s.Soldire_ID) AS Total_Soldiers
+FROM Bases b
+JOIN Soldiers s ON b.Base_ID = s.Base_ID
+WHERE 
+    b.Base_ID IN (
+        SELECT DISTINCT b1.Base_ID
+        FROM Bases b1
+        JOIN Soldiers s1 ON b1.Base_ID = s1.Base_ID
+        JOIN Tasks t ON s1.Soldire_ID = t.Soldire_ID
+        WHERE t.Status = 'In Progress'
+    )
+GROUP BY b.Base_Name;
+
+
+
+16. 
+
+SELECT AVG(s.age) AS Average_Age
+FROM Soldiers s
+JOIN Attendance a ON s.Soldire_ID = a.Soldire_ID
+JOIN Missions m ON s.Mission_Number = m.Mission_ID
+WHERE
+	a.Status = FALSE  
+    AND m.Target LIKE 'Supply%';
+
+
+
+E1.
+
+
+SELECT 
+    (COUNT(DISTINCT s.Soldire_ID) * 100.0 / COUNT(DISTINCT all_s.Soldire_ID)) AS Percentage
+FROM 
+    Bases b
+JOIN 
+    Soldiers s ON b.Base_ID = s.Base_ID
+JOIN 
+    Permissions p ON s.Soldire_ID = p.Soldire_ID
+JOIN 
+    Reports r ON r.Reporter_ID = s.Soldire_ID
+JOIN 
+    Missions m ON r.Mission_ID = m.Mission_ID
+JOIN 
+    Units u ON m.Base_ID = u.Base_ID
+JOIN 
+    Soldiers all_s ON b.Base_ID = all_s.Base_ID  -- برای شمارش کل سربازان پایگاه‌های ضد هوایی
+WHERE 
+    b.Have_Air_Defense = TRUE            -- فقط پایگاه‌های دارای ضد هوایی
+    AND p.Permission_type = 'Sick Leave' -- مرخصی از نوع Sick Leave
+    AND u.Unit_Type = 'AirCraft';        -- نوع واحد برابر با AirCraft
+
+
+
+
+E2.
+
+
+SELECT DISTINCT 
+    b.Base_Name, 
+    t.Task_Name, 
+    t.Description, 
+    t.Status
+FROM 
+    Bases b
+JOIN 
+    Soldires s ON b.Base_ID = s.Base_ID
+JOIN 
+    Tasks t ON s.Soldire_ID = t.Soldire_ID
+JOIN 
+    Equipments e ON t.Unit_ID = e.Unit_ID_Uses
+WHERE 
+    s.age > 27
+    AND t.Mission_ID > 14
+    AND e.Quantity < 60;
+
+E3.
+
+SELECT DISTINCT 
+    b.Base_Name
+FROM 
+    Bases b
+JOIN 
+    Soldiers s ON b.Base_ID = s.Base_ID
+JOIN 
+    Missions m ON b.Base_ID = m.Base_ID
+JOIN 
+    units u ON m.Base_ID = u.Base_ID
+WHERE 
+    s.Rank = 'Captain'
+    AND m.Soldires_lost > 3
+    AND u.unit_type = 'Tank';
+
+E4.
+
+
+SELECT DISTINCT
+    e.Equipment_Type, 
+    e.Equipment_Model,
+    b.base_name,
+    s.soldire_name
+FROM 
+    Soldiers s
+JOIN 
+    Missions m
+JOIN 
+    Units u
+JOIN 
+    Equipments e ON u.Unit_ID = e.Unit_ID_Uses
+JOIN 
+    Bases b ON e.Base_ID = b.Base_ID
+WHERE 
+    s.Mission_Number >= 3                   
+    AND m.Target LIKE 'Enemy%'              
+    AND u.Missions_Number < 11              
+    AND b.Have_Air_Defense = FALSE;
