@@ -52,7 +52,7 @@ The project includes several queries that extract valuable insights from the dat
 - SQL knowledge to modify or extend queries  
 
 ## License  
-This project is for academic and educational purposes only.
+This project is licensed under the MIT License.
 
 ## Authors  
 - Sayyed Hossein Hosseini DolatAbadi
