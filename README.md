@@ -55,5 +55,5 @@ The project includes several queries that extract valuable insights from the dat
 This project is licensed under the MIT License.
 
 ## Authors  
-- Sayyed Hossein Hosseini DolatAbadi
-- Amir Feiz  
+- <b>Sayyed Hossein Hosseini DolatAbadi</b>
+- <b>Amir Feiz</b>  
